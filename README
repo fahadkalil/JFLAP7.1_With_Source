@@ -1,5 +1,6 @@
 Original code obtained from https://github.com/jaypatel37/JFLAP7.1.git
-> This repository contains a modified version of JFLAP 7.1, which fixes a bug where the output configurations of a Standard Turing Machine displayed only the last configuration when using the "Trace" button.
+> This repository contains a modified version of JFLAP 7.1
+   - Bug fix: Output configurations of a Standard Turing Machine displayed only the last configuration when using the "Trace" button.
 
 ---
 
