@@ -299,14 +299,23 @@ outer:  while (true){
         
 
         if (success){ //if variables are used then they will be common to all tapes...
-            if (configuration.getTapes().length > 1){
-                for (int k = 0; k < configuration.getTapes().length; k++){
-                    configuration.getTapes()[k].writeChar(tmt.getWrite(k).charAt(0) == '~' ?
-                    configuration.getTapes()[k].readChar():
+            //Each configuration must own its tapes. Writing on the tapes of the current
+            //configuration would also change every ancestor configuration (they would all
+            //share the same Tape objects), and the traceback would show the final tape for every step.
+            Tape[] oldTapes = configuration.getTapes();
+            Tape[] newTapes = new Tape[oldTapes.length];
+            for (int k = 0; k < oldTapes.length; k++)
+                newTapes[k] = new Tape(oldTapes[k]);
+
+            if (oldTapes.length > 1){
+                for (int k = 0; k < oldTapes.length; k++){
+                    newTapes[k].writeChar(tmt.getWrite(k).charAt(0) == '~' ?
+                    oldTapes[k].readChar():
                     tmt.getWrite(k).charAt(0));
-                    configuration.getTapes()[k].moveHead(tmt.getDirection(k));
-                    list.add(new TMConfiguration(tmt.getToState(), configuration, configuration.getTapes(), myFilters));
-                } 
+                    newTapes[k].moveHead(tmt.getDirection(k));
+                }
+                //one single successor configuration for the whole step, not one per tape
+                list.add(new TMConfiguration(tmt.getToState(), configuration, newTapes, myFilters));
             }
             else{ //only do variable assignments for the one-tape Turing machine...
 
@@ -316,18 +325,18 @@ outer:  while (true){
             
             if (assignIndex != -1){
                 String s = "" + st.charAt(assignIndex+1);
-                varToChar.put(s, configuration.getTapes()[0].readChar()+"");
+                varToChar.put(s, oldTapes[0].readChar()+"");
             }
 
-            //perform the operations on the tape, and return a new TMConfiguration that represents the new position
-            configuration.getTapes()[0].writeChar(tmt.getWrite(0).charAt(0) == '~'? 
-                    configuration.getTapes()[0].readChar():
+            //perform the operations on the (copied) tape, and return a new TMConfiguration that represents the new position
+            newTapes[0].writeChar(tmt.getWrite(0).charAt(0) == '~'?
+                    oldTapes[0].readChar():
                     (varToChar.containsKey(tmt.getWrite(0).charAt(0)+"")?
                      varToChar.get(tmt.getWrite(0).charAt(0)+"").charAt(0)
                      :tmt.getWrite(0).charAt(0)));
 
-            configuration.getTapes()[0].moveHead(tmt.getDirection(0));
-            list.add(new TMConfiguration(tmt.getToState(), configuration, configuration.getTapes(), myFilters)); //no going back - we are in a deterministic world. If you freeze, then you will not go forward either.
+            newTapes[0].moveHead(tmt.getDirection(0));
+            list.add(new TMConfiguration(tmt.getToState(), configuration, newTapes, myFilters)); //no going back - we are in a deterministic world. If you freeze, then you will not go forward either.
 
             }
         }

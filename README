@@ -1,5 +1,56 @@
 Original code obtained from https://github.com/jaypatel37/JFLAP7.1.git
-> This repository contains a modified version of JFLAP 7.1, which fixes a bug where the output configurations of a Standard Turing Machine displayed only the last configuration when using the "Trace" button.
+> This repository contains a modified version of JFLAP 7.1, which fixes bugs in the trace of a Standard Turing Machine (the "Trace" button and the "View Trace" button of Input > Multiple Run > Run inputs). All changes are in `automata/turing/TMSimulator.java` (`stepConfiguration`):
+>
+> 1. Each configuration is now linked to its parent configuration. Previously the trace displayed only the last configuration.
+> 2. Each configuration now owns a copy of the tapes. Previously all configurations of a run shared the same tape objects, so the trace showed the correct sequence of states, but every step displayed the final state of the tape.
+> 3. Multi-tape machines now generate a single successor configuration per step, instead of one per tape.
+
+---
+
+How to build
+
+The build is defined in the Makefile.
+
+Environment used to build and test this version:
+- Ubuntu Linux 24.04.2 LTS (via WSL, on Windows 11)
+- OpenJDK Runtime Environment Corretto-11.0.26.4.1 (build 11.0.26+4-LTS)
+- GNU Make 4.3
+- libbatik-java (provides the Apache Batik library)
+
+Steps:
+
+1. Install the dependencies (a JDK 11 must already be installed and available in the PATH):
+
+       sudo apt update
+       sudo apt install make libbatik-java
+
+2. Check that the Batik jar expected by the Makefile exists. The Makefile copies it
+   (variable BATIKSRC) to lib/batik-all.jar, which is used on the classpath:
+
+       ls /usr/share/java/batik-all-1.17.jar
+
+   If your installation provides a different file name or version, edit the BATIKSRC
+   variable at the top of the Makefile accordingly.
+
+3. From the root directory of the project (where the Makefile is), run:
+
+       make
+
+   This compiles all the .java files with javac and generates the following files:
+   - JFLAP_With_Source.jar : JFLAP including the source code
+   - JFLAP.jar             : JFLAP without the source code
+   - JFLAP_Thin.jar        : JFLAP without the bundled Apache libraries (org)
+   - svg.jar               : the Apache libraries (org) packaged separately
+
+   Individual targets can also be used, for example "make ws" (JFLAP.jar only).
+
+4. Run the generated jar:
+
+       java -jar JFLAP.jar
+
+To remove the compiled .class files and the generated JFLAP.jar, run:
+
+       make clean
 
 ---
 
